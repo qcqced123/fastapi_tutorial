@@ -1,6 +1,6 @@
 from typing import Dict
-from model import Todo, TodoItem
-from fastapi import Path, Query, APIRouter
+from model import Todo, TodoItem, TodoItems
+from fastapi import Path, Query, APIRouter, HTTPException, status
 
 
 router_fn = APIRouter()
@@ -23,7 +23,7 @@ async def add_todo(todo: Todo) -> Dict:
     }
 
 
-@router_fn.get("/todo")
+@router_fn.get("/todo", response_model=TodoItems)  # add the response processing model
 async def retrieve_todos() -> Dict:
     """function for Route processing, set by Get method
 
@@ -46,10 +46,10 @@ async def get_single_todo(todo_id: int = Path(..., title="The Id of the todo to 
             return {
                 "todo": todo
             }
-
-    return {
-        "message": "Todo with supplied ID doesn't exist."
-    }
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Todo with supplied ID doesn't exist."
+    )
 
 
 async def query_route(query: str = Query(None)):
@@ -65,9 +65,11 @@ async def update_todo(todo_data: TodoItem, todo_id: int = Path(..., title="The I
             return {
                 "message": "Todo updated successfully."
             }
-    return {
-        "message": "Todo with supplied ID doesn't exist."
-    }
+
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Todo with supplied ID doesn't exist."
+    )
 
 
 @router_fn.delete("/todo/{todo_id}")
@@ -81,9 +83,10 @@ async def delete_single_todo(todo_id: int) -> Dict:
                 "message": "Todo deleted successfully."
             }
 
-    return {
-        "message": "Todo with supplied ID doesn't exist."
-    }
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Todo with supplied ID doesn't exist."
+    )
 
 
 @router_fn.delete("/todo")
